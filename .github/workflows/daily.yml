@@ -64,7 +64,8 @@ jobs:
 
   publish:
     needs: deploy
-    if: github.event_name == 'schedule' || inputs.publish
+    # 인스타 토큰을 넣은 뒤 저장소 변수 AUTO_PUBLISH=true 로 켭니다. 그 전에는 카드와 링크 페이지만 생성합니다.
+    if: vars.AUTO_PUBLISH == 'true' && (github.event_name == 'schedule' || inputs.publish)
     runs-on: ubuntu-latest
     permissions:
       contents: write

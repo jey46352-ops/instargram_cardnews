@@ -39,6 +39,7 @@
 | `IG_HANDLE` | `@trip_camp_pick` (카드 하단과 링크 페이지에 표시) |
 | `COUPANG_SUB_ID` | 선택 사항. 채널별 실적 구분용 (예: `insta`) |
 | `CARD_ACCENT` | 선택 사항. 포인트 컬러 (기본 `#FFD43B`) |
+| `AUTO_PUBLISH` | 인스타 토큰을 넣은 뒤 `true`로 설정하면 자동 게시가 켜집니다 |
 | `IG_GRAPH_BASE` | 선택 사항. 기본은 `https://graph.facebook.com/v21.0`. Instagram 로그인 방식의 토큰이라면 `https://graph.instagram.com/v21.0` |
 
 ### 4. 인스타그램 준비
