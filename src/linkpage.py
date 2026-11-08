@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 
-from .render import DISCLOSURE, accent_for
+from .render import DEFAULT_HANDLE, DISCLOSURE, accent_for
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
@@ -43,7 +43,7 @@ def add_post(topic: dict, products: list[dict | None], date: str) -> None:
 
 
 def build(posts: list[dict]) -> None:
-    handle = os.environ.get("IG_HANDLE", "@your_account")
+    handle = os.environ.get("IG_HANDLE") or DEFAULT_HANDLE
     sections = []
     for p in posts:
         rows = []
@@ -81,10 +81,14 @@ ol{{list-style:none;margin:0;padding:0}}li{{display:grid;grid-template-columns:4
 .no{{color:var(--accent);font-weight:800;font-size:14px}}li img{{width:56px;height:56px;object-fit:contain;background:#fff;border-radius:8px}}
 .txt{{min-width:0}}.txt b{{display:block;font-size:15px}}.txt small{{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 .btn{{background:var(--accent);color:#121212;font-weight:700;font-size:13px;padding:10px 12px;border-radius:10px;text-decoration:none;white-space:nowrap;min-height:44px;display:flex;align-items:center}}
+.vols{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}}.vols a{{min-height:44px;display:flex;align-items:center;padding:0 16px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--fg);text-decoration:none;font-weight:700;font-size:14px}}
+section{{scroll-margin-top:12px}}
 .btn.off{{background:var(--line);color:var(--muted)}}
 </style></head><body><main>
 <h1>{_e(handle)} 추천 링크</h1>
-<p class="note">게시물의 No. 번호와 같은 순서입니다. {DISCLOSURE}</p>
+<p class="note">게시물에 적힌 <b>Vol 번호</b>를 누르면 그 게시물의 상품으로 바로 이동해요. 상품 순서는 카드의 No. 번호와 같습니다.</p>
+<nav class="vols" aria-label="Vol 바로가기">{"".join(f'<a href="#vol-{p["vol"]:02d}">Vol.{p["vol"]:02d}</a>' for p in posts)}</nav>
+<p class="note">{DISCLOSURE}</p>
 {"".join(sections)}
 </main></body></html>"""
     (DOCS / "index.html").write_text(page, encoding="utf-8")

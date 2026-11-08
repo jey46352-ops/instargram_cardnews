@@ -13,6 +13,8 @@ from . import linkpage, render, topics
 
 ROOT = Path(__file__).resolve().parent.parent
 PENDING = ROOT / "data" / "pending.json"
+# 이미 만든 Vol을 새 디자인으로 다시 그릴 때: [2, 3, 4] 처럼 적어 두면 다음 generate 때 한 번 실행되고 지워집니다.
+RERENDER = ROOT / "data" / "rerender.json"
 KST = timezone(timedelta(hours=9))
 
 HASHTAGS = {
@@ -23,7 +25,8 @@ HASHTAGS = {
 
 
 def caption(topic: dict) -> str:
-    lines = [f'{topic["sub"]} {topic["title1"]} {topic["title2"]}', ""]
+    # 광고 표시는 '더보기' 없이 보이는 첫 줄에 둡니다 (공정위 추천·보증 심사지침).
+    lines = ["[광고] 쿠팡 파트너스 수수료를 받는 추천 게시물이에요", "", f'{topic["sub"]} {topic["title1"]} {topic["title2"]}', ""]
     for n, it in enumerate(topic["items"], start=1):
         lines.append(f'{n}. {it["name"]} — {it["tip"]}')
     lines += [
@@ -45,7 +48,36 @@ def _mock_products(topic: dict) -> list[dict]:
     ]
 
 
+def rerender(vols: list[int]) -> None:
+    """posts.json에 저장된 상품으로 지난 Vol 카드와 캡션을 다시 만듭니다 (쿠팡 API 호출 없음)."""
+    posts = {p["vol"]: p for p in json.loads(linkpage.POSTS.read_text(encoding="utf-8"))}
+    bank = json.loads(topics.BANK.read_text(encoding="utf-8"))
+    for vol in vols:
+        post = posts.get(vol)
+        topic = next(
+            (t for t in bank if post and t["category"] == post["category"] and f'{t["title1"]} {t["title2"]}' == post["title"]),
+            None,
+        )
+        if not topic:
+            print(f"[rerender] Vol.{vol:02d}: 주제 뱅크에서 찾지 못해 건너뜁니다.")
+            continue
+        topic = dict(topic, vol=vol)
+        products = [
+            {"productImage": it.get("productImage"), "productUrl": it.get("url"), "productName": it.get("productName")}
+            for it in post["items"]
+        ]
+        out_dir = linkpage.DOCS / "cards" / f"vol-{vol:02d}"
+        render.render_all(topic, products, out_dir)
+        (out_dir / "caption.txt").write_text(caption(topic), encoding="utf-8")
+        print(f"[rerender] Vol.{vol:02d} 다시 만듦")
+
+
 def generate(mock: bool = False) -> None:
+    if RERENDER.exists():
+        rerender(json.loads(RERENDER.read_text(encoding="utf-8")))
+        RERENDER.unlink()
+        linkpage.build(json.loads(linkpage.POSTS.read_text(encoding="utf-8")))
+
     topic, state = topics.next_topic()
     print(f'[generate] Vol.{topic["vol"]:02d} {topic["category"]} · {topic["title1"]} {topic["title2"]}')
 
@@ -109,6 +141,8 @@ if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "generate":
         generate(mock="--mock" in sys.argv)
+    elif cmd == "rerender":
+        rerender([int(v) for v in sys.argv[2:]])
     elif cmd == "publish":
         publish()
     else:

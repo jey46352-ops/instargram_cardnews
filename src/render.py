@@ -6,6 +6,8 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
+from . import images
+
 W, H = 1080, 1350
 BG = "#121212"
 FG = "#FFFFFF"
@@ -22,6 +24,9 @@ def accent_for(category: str, light: bool = False) -> str:
     return table.get(category, ACCENT)
 FONT_CSS = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
 FONT_STACK = "'Pretendard', 'Noto Sans CJK KR', 'Noto Sans KR', sans-serif"
+DEFAULT_HANDLE = "@shashasha_0708"
+# 표지에 들어가는 짧은 광고 표시 (공정위 추천·보증 심사지침: 첫 화면에서 보이도록)
+AD_LABEL = "광고 · 쿠팡 파트너스 활동으로 수수료를 받을 수 있어요"
 DISCLOSURE = "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
 
 ARROW = (
@@ -62,6 +67,10 @@ body.light .vol, body.light .of, body.light .handle {{ color: #757575; }}
 body.light .tip {{ color: #424242; }}
 body.light .rule {{ background: #E0E0E0; }}
 body.light .photo {{ border: 2px solid #EEEEEE; }}
+body.light .num {{ color: #121212; background: linear-gradient(transparent 55%, var(--accent) 55%); padding: 0 8px; }}
+.photo.fill img {{ width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; }}
+.photo.clean img {{ max-width: 86%; max-height: 86%; object-fit: contain; }}
+.adlabel {{ margin: 0 0 20px; font-size: 24px; font-weight: 500; color: {MUTED}; }}
 """
 
 
@@ -84,13 +93,14 @@ def _page(body: str, category: str = "", light: bool = False) -> str:
     return (
         f'<!doctype html><html lang="ko"><head><meta charset="utf-8">'
         f'<link rel="stylesheet" href="{FONT_CSS}"><style>{BASE_CSS}</style></head>'
-        f'<body{cls} style="--accent: {accent_for(category, light)}">{body}</body></html>'
+        f'<body{cls} style="--accent: {accent_for(category)}">{body}</body></html>'
     )
 
 
-def _bottom(handle: str, right: str) -> str:
+def _bottom(handle: str, right: str, note: str = "") -> str:
+    note_html = f'<p class="adlabel">{_e(note)}</p>' if note else ""
     return (
-        f'<div><div class="rule"></div><div class="bottom"><span class="handle">{_e(handle)}</span>'
+        f'<div>{note_html}<div class="rule"></div><div class="bottom"><span class="handle">{_e(handle)}</span>'
         f'<span class="swipe">{right}</span></div></div>'
     )
 
@@ -102,22 +112,20 @@ def cover(topic: dict, handle: str) -> str:
         f'<div style="display:flex;flex-direction:column;gap:32px">'
         f'<p class="sub">{_e(topic["sub"])}</p>'
         f'<h1 class="title"><span class="fitline">{_e(topic["title1"])}</span><span class="fitline accent">{_e(topic["title2"])}</span></h1></div>'
-        f'{_bottom(handle, "옆으로 넘기기 " + ARROW)}</div>',
+        f'{_bottom(handle, "옆으로 넘기기 " + ARROW, AD_LABEL)}</div>',
         topic["category"],
     )
 
 
 def item(topic: dict, idx: int, it: dict, product: dict | None, handle: str) -> str:
-    img = (
-        f'<img src="{_e(product["productImage"])}" alt="">'
-        if product and product.get("productImage")
-        else '<span class="ph">[상품 이미지]</span>'
-    )
+    src, kind = images.prepare((product or {}).get("productImage"))
+    img = f'<img src="{_e(src)}" alt="">' if src else '<span class="ph">[상품 이미지]</span>'
+    photo_cls = "photo fill" if kind == "photo" else "photo clean"
     return _page(
         f'<div class="card">'
         f'<div class="top"><div><span class="num">{idx:02d}</span><span class="of">/ 05</span></div>'
         f'<span class="vol">{_e(topic["title1"])}</span></div>'
-        f'<div class="photo">{img}</div>'
+        f'<div class="{photo_cls}">{img}</div>'
         f'<div><h2 class="name"><span class="fitline">{_e(it["name"])}</span></h2><p class="tip">{_e(it["tip"])}</p></div>'
         f'{_bottom(handle, "구매 링크는 프로필 링크 No." + str(idx))}</div>',
         topic["category"],
@@ -141,7 +149,7 @@ def outro(topic: dict, handle: str) -> str:
 
 
 def render_all(topic: dict, products: list[dict | None], out_dir: Path) -> list[Path]:
-    handle = os.environ.get("IG_HANDLE", "@your_account")
+    handle = os.environ.get("IG_HANDLE") or DEFAULT_HANDLE
     pages = [cover(topic, handle)]
     pages += [item(topic, i + 1, it, products[i], handle) for i, it in enumerate(topic["items"])]
     pages.append(outro(topic, handle))

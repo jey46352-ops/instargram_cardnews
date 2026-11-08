@@ -60,7 +60,7 @@ class CoupangClient:
         if not products:
             return None
         products.sort(key=lambda p: (not p.get("isRocket"), p.get("rank", 99)))
-        p = products[0]
+        p = _prefer_clean_image(products[:4])
         return {
             "keyword": keyword,
             "productId": p.get("productId"),
@@ -70,6 +70,18 @@ class CoupangClient:
             "productUrl": p.get("productUrl"),
             "isRocket": bool(p.get("isRocket")),
         }
+
+
+def _prefer_clean_image(candidates: list[dict]) -> dict:
+    """상위 후보 중 흰 배경(광고 문구가 적은) 대표 이미지를 가진 상품을 우선 고릅니다.
+    이미지 서버 호출이라 쿠팡 API 호출 한도와는 무관합니다."""
+    from .images import CLEAN_RATIO, fetch, white_ratio
+
+    for p in candidates:
+        img = fetch(p.get("productImage"))
+        if img is not None and white_ratio(img) >= CLEAN_RATIO:
+            return p
+    return candidates[0]
 
 
 def pick_products(keywords: list[str], delay: float = 2.0) -> list[dict | None]:
