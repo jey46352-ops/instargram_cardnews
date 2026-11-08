@@ -10,7 +10,16 @@ W, H = 1080, 1350
 BG = "#121212"
 FG = "#FFFFFF"
 MUTED = "#BDBDBD"
-ACCENT = os.environ.get("CARD_ACCENT", "#FFD43B")
+# 카테고리별 포인트 컬러: 여행 노랑, 숙소 핑크, 캠핑 그린
+CATEGORY_ACCENTS = {"여행": "#FFD43B", "숙소": "#F783AC", "캠핑": "#69DB7C"}
+# 흰 배경 상품 카드(02~06)용: 같은 색 계열에서 한 단계 진하게 (흰 바탕에서 잘 읽히도록)
+CATEGORY_ACCENTS_LIGHT = {"여행": "#FAB005", "숙소": "#E64980", "캠핑": "#37B24D"}
+ACCENT = os.environ.get("CARD_ACCENT", "#FFD43B")  # 목록에 없는 카테고리용 기본값
+
+
+def accent_for(category: str, light: bool = False) -> str:
+    table = CATEGORY_ACCENTS_LIGHT if light else CATEGORY_ACCENTS
+    return table.get(category, ACCENT)
 FONT_CSS = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
 FONT_STACK = "'Pretendard', 'Noto Sans CJK KR', 'Noto Sans KR', sans-serif"
 DISCLOSURE = "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
@@ -26,17 +35,17 @@ html, body {{ margin: 0; width: {W}px; height: {H}px; }}
 body {{ background: {BG}; color: {FG}; font-family: {FONT_STACK}; }}
 .card {{ width: {W}px; height: {H}px; padding: 80px; display: flex; flex-direction: column; justify-content: space-between; }}
 .top {{ display: flex; justify-content: space-between; align-items: center; }}
-.tag {{ padding: 12px 28px; border-radius: 999px; background: {ACCENT}; color: #121212; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }}
+.tag {{ padding: 12px 28px; border-radius: 999px; background: var(--accent); color: #121212; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }}
 .vol {{ font-size: 32px; font-weight: 500; color: {MUTED}; }}
 .sub {{ margin: 0; font-size: 48px; font-weight: 500; line-height: 1.3; letter-spacing: -0.03em; color: #E0E0E0; }}
 .fitline {{ display: block; white-space: nowrap; }}
 .title {{ margin: 0; font-size: 136px; font-weight: 900; line-height: 1.15; letter-spacing: -0.04em; }}
-.accent {{ color: {ACCENT}; }}
+.accent {{ color: var(--accent); }}
 .rule {{ height: 2px; background: #3A3A3A; margin-bottom: 28px; }}
 .bottom {{ display: flex; justify-content: space-between; align-items: center; font-size: 30px; }}
 .handle {{ font-weight: 500; color: {MUTED}; }}
 .swipe {{ display: flex; align-items: center; gap: 12px; font-weight: 700; }}
-.num {{ font-size: 96px; font-weight: 900; color: {ACCENT}; letter-spacing: -0.04em; line-height: 1; }}
+.num {{ font-size: 96px; font-weight: 900; color: var(--accent); letter-spacing: -0.04em; line-height: 1; }}
 .of {{ font-size: 36px; font-weight: 500; color: {MUTED}; margin-left: 8px; }}
 .photo {{ height: 600px; border-radius: 32px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; overflow: hidden; }}
 .photo img {{ max-width: 88%; max-height: 88%; object-fit: contain; }}
@@ -46,7 +55,13 @@ body {{ background: {BG}; color: {FG}; font-family: {FONT_STACK}; }}
 .small {{ font-size: 24px; color: {MUTED}; line-height: 1.5; }}
 .cta {{ margin: 0; font-size: 96px; font-weight: 900; line-height: 1.2; letter-spacing: -0.04em; }}
 .steps {{ display: flex; flex-direction: column; gap: 24px; font-size: 44px; font-weight: 700; letter-spacing: -0.03em; }}
-.steps span {{ color: {ACCENT}; margin-right: 16px; }}
+.steps span {{ color: var(--accent); margin-right: 16px; }}
+/* 상품 카드(02~06): 흰 배경 */
+body.light {{ background: #FFFFFF; color: #121212; }}
+body.light .vol, body.light .of, body.light .handle {{ color: #757575; }}
+body.light .tip {{ color: #424242; }}
+body.light .rule {{ background: #E0E0E0; }}
+body.light .photo {{ border: 2px solid #EEEEEE; }}
 """
 
 
@@ -64,11 +79,12 @@ def _e(s) -> str:
     return html.escape(str(s or ""))
 
 
-def _page(body: str) -> str:
+def _page(body: str, category: str = "", light: bool = False) -> str:
+    cls = ' class="light"' if light else ""
     return (
         f'<!doctype html><html lang="ko"><head><meta charset="utf-8">'
         f'<link rel="stylesheet" href="{FONT_CSS}"><style>{BASE_CSS}</style></head>'
-        f"<body>{body}</body></html>"
+        f'<body{cls} style="--accent: {accent_for(category, light)}">{body}</body></html>'
     )
 
 
@@ -86,7 +102,8 @@ def cover(topic: dict, handle: str) -> str:
         f'<div style="display:flex;flex-direction:column;gap:32px">'
         f'<p class="sub">{_e(topic["sub"])}</p>'
         f'<h1 class="title"><span class="fitline">{_e(topic["title1"])}</span><span class="fitline accent">{_e(topic["title2"])}</span></h1></div>'
-        f'{_bottom(handle, "옆으로 넘기기 " + ARROW)}</div>'
+        f'{_bottom(handle, "옆으로 넘기기 " + ARROW)}</div>',
+        topic["category"],
     )
 
 
@@ -102,7 +119,9 @@ def item(topic: dict, idx: int, it: dict, product: dict | None, handle: str) -> 
         f'<span class="vol">{_e(topic["title1"])}</span></div>'
         f'<div class="photo">{img}</div>'
         f'<div><h2 class="name"><span class="fitline">{_e(it["name"])}</span></h2><p class="tip">{_e(it["tip"])}</p></div>'
-        f'{_bottom(handle, "구매 링크는 프로필 링크 No." + str(idx))}</div>'
+        f'{_bottom(handle, "구매 링크는 프로필 링크 No." + str(idx))}</div>',
+        topic["category"],
+        light=True,
     )
 
 
@@ -116,7 +135,8 @@ def outro(topic: dict, handle: str) -> str:
         f'<div><span>02</span>제품 링크는 프로필 링크에서</div>'
         f'<div><span>03</span>매일 새 {_e(topic["category"])} 꿀템, 팔로우</div></div></div>'
         f'<div><div class="rule"></div><p class="small" style="margin:0 0 16px">{DISCLOSURE}</p>'
-        f'<div class="bottom"><span class="handle">{_e(handle)}</span><span class="swipe">Vol.{topic["vol"]:02d}</span></div></div></div>'
+        f'<div class="bottom"><span class="handle">{_e(handle)}</span><span class="swipe">Vol.{topic["vol"]:02d}</span></div></div></div>',
+        topic["category"],
     )
 
 

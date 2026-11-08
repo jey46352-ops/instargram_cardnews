@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 
-from .render import DISCLOSURE
+from .render import DISCLOSURE, accent_for
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
@@ -59,7 +59,7 @@ def build(posts: list[dict]) -> None:
                 f'<small>{_e(it.get("productName") or it["tip"])}</small></div>{btn}</li>'
             )
         sections.append(
-            f'<section id="vol-{p["vol"]:02d}"><header><span class="tag">{_e(p["category"])}</span>'
+            f'<section id="vol-{p["vol"]:02d}" style="--accent:{accent_for(p["category"])}"><header><span class="tag">{_e(p["category"])}</span>'
             f'<span class="meta">Vol.{p["vol"]:02d} · {_e(p["date"])}</span></header>'
             f'<h2>{_e(p["title"])}</h2><ol>{"".join(rows)}</ol></section>'
         )
