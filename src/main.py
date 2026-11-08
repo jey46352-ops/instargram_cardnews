@@ -1,21 +1,25 @@
 """사용법
   python -m src.main generate          # 주제 선정 → 쿠팡 검색 → 카드 렌더 → 링크 페이지 갱신
   python -m src.main generate --mock   # 쿠팡 API 없이 디자인만 확인
-  python -m src.main publish           # 만들어 둔 카드를 인스타그램에 게시
+  python -m src.main publish           # 아직 안 올린 가장 오래된 Vol을 인스타그램에 게시
+  python -m src.main publish 3         # Vol.03을 지정해서 게시
 """
 import json
 import os
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from . import linkpage, render, topics
 
 ROOT = Path(__file__).resolve().parent.parent
-PENDING = ROOT / "data" / "pending.json"
 # 이미 만든 Vol을 새 디자인으로 다시 그릴 때: [2, 3, 4] 처럼 적어 두면 다음 generate 때 한 번 실행되고 지워집니다.
 RERENDER = ROOT / "data" / "rerender.json"
+# 인스타에 올라간 Vol 번호 목록. publish는 여기 없는 가장 오래된 Vol부터 하루 하나씩 올립니다.
+PUBLISHED = ROOT / "data" / "published.json"
 KST = timezone(timedelta(hours=9))
+PUBLISH_HOUR_KST = 21
 
 HASHTAGS = {
     "여행": "#여행준비물 #여행꿀팁 #해외여행준비 #여행필수템 #여행가방싸기 #국내여행 #여행템 #여행스타그램",
@@ -78,6 +82,12 @@ def generate(mock: bool = False) -> None:
         RERENDER.unlink()
         linkpage.build(json.loads(linkpage.POSTS.read_text(encoding="utf-8")))
 
+    backlog = unposted_vols()
+    if backlog and not mock:
+        # 아직 안 올린 Vol이 있으면 새로 만들지 않습니다 (게시가 계속 밀리는 것과 쿠팡 API 낭비를 막음).
+        print(f"[generate] 게시 대기 중인 Vol {backlog} 이 있어 오늘은 새 Vol을 만들지 않습니다.")
+        return
+
     topic, state = topics.next_topic()
     print(f'[generate] Vol.{topic["vol"]:02d} {topic["category"]} · {topic["title1"]} {topic["title2"]}')
 
@@ -94,19 +104,10 @@ def generate(mock: bool = False) -> None:
 
     out_dir = linkpage.DOCS / "cards" / f'vol-{topic["vol"]:02d}'
     files = render.render_all(topic, products, out_dir)
-    cap = caption(topic)
-    (out_dir / "caption.txt").write_text(cap, encoding="utf-8")
+    (out_dir / "caption.txt").write_text(caption(topic), encoding="utf-8")
 
     date = datetime.now(KST).strftime("%Y-%m-%d")
     linkpage.add_post(topic, products, date)
-    PENDING.write_text(
-        json.dumps(
-            {"vol": topic["vol"], "files": [str(f.relative_to(linkpage.DOCS)) for f in files], "caption": cap},
-            ensure_ascii=False,
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
     topics.save_state(state)
     print(f"[generate] 카드 {len(files)}장 → {out_dir.relative_to(ROOT)}")
 
@@ -122,19 +123,51 @@ def _pages_base() -> str:
     return f"https://{owner.lower()}.github.io/{name}"
 
 
-def publish() -> None:
+def _published() -> list[int]:
+    return json.loads(PUBLISHED.read_text(encoding="utf-8")) if PUBLISHED.exists() else []
+
+
+def unposted_vols() -> list[int]:
+    """카드가 만들어졌지만 아직 인스타에 안 올린 Vol 번호 (오래된 순)."""
+    posts = json.loads(linkpage.POSTS.read_text(encoding="utf-8")) if linkpage.POSTS.exists() else []
+    done = set(_published())
+    return sorted(p["vol"] for p in posts if p["vol"] not in done)
+
+
+def _wait_until_publish_time() -> None:
+    """예약 실행이 일찍 시작되면 오후 9시(한국 시간)까지 기다립니다. 늦게 시작되면 바로 올립니다."""
+    now = datetime.now(KST)
+    target = now.replace(hour=PUBLISH_HOUR_KST, minute=0, second=0, microsecond=0)
+    wait = (target - now).total_seconds()
+    if 0 < wait <= 3 * 3600:
+        print(f"[publish] {target:%H:%M}까지 {int(wait // 60)}분 기다립니다.")
+        time.sleep(wait)
+
+
+def publish(vol: int | None = None) -> None:
     from . import instagram
 
-    if not PENDING.exists():
-        print("[publish] 게시할 카드가 없습니다.")
-        return
-    pending = json.loads(PENDING.read_text(encoding="utf-8"))
+    queue = unposted_vols()
+    if vol is None:
+        if not queue:
+            print("[publish] 게시할 카드가 없습니다.")
+            return
+        vol = queue[0]
+    card_dir = linkpage.DOCS / "cards" / f"vol-{vol:02d}"
+    files = sorted(card_dir.glob("*.jpg"))
+    if not files:
+        sys.exit(f"Vol.{vol:02d} 카드 이미지가 없습니다: {card_dir}")
+    cap = (card_dir / "caption.txt").read_text(encoding="utf-8")
     base = _pages_base()
-    urls = [f"{base}/{f}" for f in pending["files"]]
+    # 같은 파일명으로 다시 렌더링된 경우 인스타가 옛 이미지를 가져가지 않도록 버전 쿼리를 붙입니다.
+    ver = int(max(f.stat().st_mtime for f in files))
+    urls = [f"{base}/{f.relative_to(linkpage.DOCS).as_posix()}?v={ver}" for f in files]
     instagram.wait_until_public(urls)
-    media_id = instagram.publish_carousel(urls, pending["caption"])
-    print(f'[publish] Vol.{pending["vol"]:02d} 게시 완료 (media id {media_id})')
-    PENDING.unlink()
+    if os.environ.get("WAIT_FOR_PUBLISH_TIME") == "true":
+        _wait_until_publish_time()
+    media_id = instagram.publish_carousel(urls, cap)
+    print(f"[publish] Vol.{vol:02d} 게시 완료 (media id {media_id})")
+    PUBLISHED.write_text(json.dumps(sorted(set(_published()) | {vol})), encoding="utf-8")
 
 
 if __name__ == "__main__":
@@ -144,7 +177,7 @@ if __name__ == "__main__":
     elif cmd == "rerender":
         rerender([int(v) for v in sys.argv[2:]])
     elif cmd == "publish":
-        publish()
+        publish(int(sys.argv[2]) if len(sys.argv) > 2 else None)
     else:
         print(__doc__)
         sys.exit(1)

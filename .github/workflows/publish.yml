@@ -1,0 +1,45 @@
+name: daily-publish
+
+on:
+  schedule:
+    # 20:20 (한국 시간)에 예약. 보통 40분쯤 늦게 시작되므로, 일찍 시작되면 21:00까지 기다렸다가 올립니다.
+    - cron: "20 11 * * *"
+  workflow_dispatch:
+    inputs:
+      vol:
+        description: "올릴 Vol 번호 (비우면 아직 안 올린 가장 오래된 Vol, 기다리지 않고 바로 게시)"
+        required: false
+
+concurrency:
+  group: daily-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # 인스타 토큰을 넣은 뒤 저장소 변수 AUTO_PUBLISH=true 로 켭니다.
+    if: vars.AUTO_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Publish to Instagram
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_GRAPH_BASE: ${{ vars.IG_GRAPH_BASE || 'https://graph.instagram.com/v21.0' }}
+          PAGES_BASE_URL: ${{ vars.PAGES_BASE_URL }}
+          WAIT_FOR_PUBLISH_TIME: ${{ github.event_name == 'schedule' }}
+        run: python -m src.main publish ${{ inputs.vol }}
+      - name: Commit
+        run: |
+          git config user.name "cardnews-bot"
+          git config user.email "cardnews-bot@users.noreply.github.com"
+          git add -A data
+          git commit -m "게시 완료 기록" || echo "변경 없음"
+          git pull --rebase && git push

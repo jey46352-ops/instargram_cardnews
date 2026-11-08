@@ -2,13 +2,9 @@ name: daily-cardnews
 
 on:
   schedule:
-    - cron: "17 10 * * *"   # 매일 19:17 (한국 시간). GitHub 사정으로 몇 분~수십 분 늦을 수 있습니다.
+    # 매일 17:17 (한국 시간). 실제 시작은 보통 40분쯤 늦습니다. 게시는 publish.yml이 21:00에 합니다.
+    - cron: "17 8 * * *"
   workflow_dispatch:
-    inputs:
-      publish:
-        description: "인스타그램에 게시할까요? (false면 카드와 링크 페이지만 생성)"
-        type: boolean
-        default: true
 
 concurrency:
   group: daily-cardnews
@@ -44,7 +40,7 @@ jobs:
           git config user.email "cardnews-bot@users.noreply.github.com"
           git add -A docs data
           git commit -m "Vol 카드뉴스 자동 생성 $(date +%F)" || echo "변경 없음"
-          git push
+          git pull --rebase && git push
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
@@ -61,33 +57,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
-  publish:
-    needs: deploy
-    # 인스타 토큰을 넣은 뒤 저장소 변수 AUTO_PUBLISH=true 로 켭니다. 그 전에는 카드와 링크 페이지만 생성합니다.
-    if: vars.AUTO_PUBLISH == 'true' && (github.event_name == 'schedule' || inputs.publish)
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install requests
-      - name: Publish to Instagram
-        env:
-          IG_USER_ID: ${{ secrets.IG_USER_ID }}
-          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
-          IG_GRAPH_BASE: ${{ vars.IG_GRAPH_BASE || 'https://graph.facebook.com/v21.0' }}
-          PAGES_BASE_URL: ${{ vars.PAGES_BASE_URL }}
-        run: python -m src.main publish
-      - name: Commit
-        run: |
-          git config user.name "cardnews-bot"
-          git config user.email "cardnews-bot@users.noreply.github.com"
-          git add -A data
-          git commit -m "게시 완료 기록" || echo "변경 없음"
-          git push

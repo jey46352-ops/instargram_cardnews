@@ -4,7 +4,8 @@ import time
 
 import requests
 
-GRAPH = os.environ.get("IG_GRAPH_BASE", "https://graph.facebook.com/v21.0")
+# 'Instagram 로그인' 방식 API (페이스북 페이지 없이 프로페셔널 계정만으로 사용).
+GRAPH = os.environ.get("IG_GRAPH_BASE", "https://graph.instagram.com/v21.0")
 
 
 class InstagramError(RuntimeError):
