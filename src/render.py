@@ -105,14 +105,30 @@ def _bottom(handle: str, right: str, note: str = "") -> str:
     )
 
 
-def cover(topic: dict, handle: str) -> str:
+def item_plain(topic: dict, idx: int, it: dict, handle: str) -> str:
+    """광고 없는 정보형 카드: 상품 사진·구매 링크 없이 이름과 팁만 크게."""
+    return _page(
+        f'<div class="card">'
+        f'<div class="top"><div><span class="num">{idx:02d}</span><span class="of">/ 05</span></div>'
+        f'<span class="vol">{_e(topic["title1"])}</span></div>'
+        f'<div style="display:flex;flex-direction:column;gap:40px">'
+        f'<div style="width:120px;height:12px;border-radius:6px;background:var(--accent)"></div>'
+        f'<h2 class="name" style="font-size:112px"><span class="fitline">{_e(it["name"])}</span></h2>'
+        f'<p class="tip" style="font-size:56px;margin:0">{_e(it["tip"])}</p></div>'
+        f'{_bottom(handle, "다음 팁 " + ARROW)}</div>',
+        topic["category"],
+        light=True,
+    )
+
+
+def cover(topic: dict, handle: str, ad: bool = True) -> str:
     return _page(
         f'<div class="card">'
         f'<div class="top"><span class="tag">{_e(topic["category"])}</span><span class="vol">Vol.{topic["vol"]:02d}</span></div>'
         f'<div style="display:flex;flex-direction:column;gap:32px">'
         f'<p class="sub">{_e(topic["sub"])}</p>'
         f'<h1 class="title"><span class="fitline">{_e(topic["title1"])}</span><span class="fitline accent">{_e(topic["title2"])}</span></h1></div>'
-        f'{_bottom(handle, "옆으로 넘기기 " + ARROW, AD_LABEL)}</div>',
+        f'{_bottom(handle, "옆으로 넘기기 " + ARROW, AD_LABEL if ad else "")}</div>',
         topic["category"],
     )
 
@@ -133,26 +149,32 @@ def item(topic: dict, idx: int, it: dict, product: dict | None, handle: str) -> 
     )
 
 
-def outro(topic: dict, handle: str) -> str:
+def outro(topic: dict, handle: str, ad: bool = True) -> str:
+    step2 = "제품 링크는 프로필 링크에서" if ad else "같이 갈 사람에게 공유하기"
+    note = f'<p class="small" style="margin:0 0 16px">{DISCLOSURE}</p>' if ad else ""
     return _page(
         f'<div class="card">'
         f'<div class="top"><span class="tag">{_e(topic["category"])}</span><span class="vol">Vol.{topic["vol"]:02d}</span></div>'
         f'<div style="display:flex;flex-direction:column;gap:56px">'
         f'<h2 class="cta">떠나기 전에<br><span class="accent">저장해 두세요</span></h2>'
         f'<div class="steps"><div><span>01</span>저장해 두고 짐 쌀 때 꺼내보기</div>'
-        f'<div><span>02</span>제품 링크는 프로필 링크에서</div>'
+        f'<div><span>02</span>{step2}</div>'
         f'<div><span>03</span>매일 새 {_e(topic["category"])} 꿀템, 팔로우</div></div></div>'
-        f'<div><div class="rule"></div><p class="small" style="margin:0 0 16px">{DISCLOSURE}</p>'
+        f'<div><div class="rule"></div>{note}'
         f'<div class="bottom"><span class="handle">{_e(handle)}</span><span class="swipe">Vol.{topic["vol"]:02d}</span></div></div></div>',
         topic["category"],
     )
 
 
-def render_all(topic: dict, products: list[dict | None], out_dir: Path) -> list[Path]:
+def render_all(topic: dict, products: list[dict | None], out_dir: Path, ad: bool = True) -> list[Path]:
+    """ad=False면 광고 없는 정보형 카드(광고 표시·상품 사진·구매 링크 문구 없음)를 만듭니다."""
     handle = os.environ.get("IG_HANDLE") or DEFAULT_HANDLE
-    pages = [cover(topic, handle)]
-    pages += [item(topic, i + 1, it, products[i], handle) for i, it in enumerate(topic["items"])]
-    pages.append(outro(topic, handle))
+    pages = [cover(topic, handle, ad)]
+    if ad:
+        pages += [item(topic, i + 1, it, products[i], handle) for i, it in enumerate(topic["items"])]
+    else:
+        pages += [item_plain(topic, i + 1, it, handle) for i, it in enumerate(topic["items"])]
+    pages.append(outro(topic, handle, ad))
 
     out_dir.mkdir(parents=True, exist_ok=True)
     files = []

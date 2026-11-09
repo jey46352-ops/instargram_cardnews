@@ -15,7 +15,7 @@ def _e(s) -> str:
     return html.escape(str(s or ""))
 
 
-def add_post(topic: dict, products: list[dict | None], date: str) -> None:
+def add_post(topic: dict, products: list[dict | None], date: str, adfree: bool = False) -> None:
     posts = json.loads(POSTS.read_text(encoding="utf-8")) if POSTS.exists() else []
     posts = [p for p in posts if p["vol"] != topic["vol"]]
     posts.insert(
@@ -23,6 +23,7 @@ def add_post(topic: dict, products: list[dict | None], date: str) -> None:
         {
             "vol": topic["vol"],
             "date": date,
+            "adfree": adfree,
             "category": topic["category"],
             "title": f'{topic["title1"]} {topic["title2"]}',
             "items": [
@@ -44,6 +45,8 @@ def add_post(topic: dict, products: list[dict | None], date: str) -> None:
 
 def build(posts: list[dict]) -> None:
     handle = os.environ.get("IG_HANDLE") or DEFAULT_HANDLE
+    # 광고 없는 정보형 Vol은 링크가 없으므로 프로필 링크 페이지에 싣지 않습니다.
+    posts = [p for p in posts if not p.get("adfree")]
     sections = []
     for p in posts:
         rows = []

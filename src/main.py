@@ -3,6 +3,8 @@
   python -m src.main generate --mock   # 쿠팡 API 없이 디자인만 확인
   python -m src.main publish           # 아직 안 올린 가장 오래된 Vol을 인스타그램에 게시
   python -m src.main publish 3         # Vol.03을 지정해서 게시
+  python -m src.main adfree 2 3        # Vol.02, 03을 광고 없는 정보형으로 다시 만들기 (adon 은 되돌리기)
+  광고 없는 기간은 data/adfree.json {"until": "YYYY-MM-DD"} 로 정합니다.
 """
 import json
 import os
@@ -18,6 +20,8 @@ ROOT = Path(__file__).resolve().parent.parent
 RERENDER = ROOT / "data" / "rerender.json"
 # 인스타에 올라간 Vol 번호 목록. publish는 여기 없는 가장 오래된 Vol부터 하루 하나씩 올립니다.
 PUBLISHED = ROOT / "data" / "published.json"
+# 광고 없는 기간: {"until": "2026-11-16"} 이면 그날까지 만드는 카드는 쿠팡 광고·링크 없이 정보만 담습니다.
+ADFREE = ROOT / "data" / "adfree.json"
 KST = timezone(timedelta(hours=9))
 PUBLISH_HOUR_KST = 21
 
@@ -28,7 +32,29 @@ HASHTAGS = {
 }
 
 
-def caption(topic: dict) -> str:
+def ad_free_until() -> str:
+    """광고 없는 기간의 마지막 날(YYYY-MM-DD, 한국 시간). 파일이 없으면 빈 문자열."""
+    if not ADFREE.exists():
+        return ""
+    return json.loads(ADFREE.read_text(encoding="utf-8")).get("until", "")
+
+
+def ad_free_now() -> bool:
+    return datetime.now(KST).strftime("%Y-%m-%d") <= ad_free_until()
+
+
+def caption(topic: dict, ad: bool = True) -> str:
+    if not ad:
+        lines = [f'{topic["sub"]} {topic["title1"]} {topic["title2"]}', ""]
+        lines += [f'{n}. {it["name"]} — {it["tip"]}' for n, it in enumerate(topic["items"], start=1)]
+        lines += [
+            "",
+            "도움이 됐다면 저장하고, 같이 갈 사람에게 공유해 주세요.",
+            f'매일 새 {topic["category"]} 꿀팁을 올려요. 팔로우하고 받아보세요.',
+            "",
+            HASHTAGS.get(topic["category"], ""),
+        ]
+        return "\n".join(lines)[:2200]
     # 광고 표시는 '더보기' 없이 보이는 첫 줄에 둡니다 (공정위 추천·보증 심사지침).
     lines = ["[광고] 쿠팡 파트너스 수수료를 받는 추천 게시물이에요", "", f'{topic["sub"]} {topic["title1"]} {topic["title2"]}', ""]
     for n, it in enumerate(topic["items"], start=1):
@@ -52,6 +78,17 @@ def _mock_products(topic: dict) -> list[dict]:
     ]
 
 
+def set_adfree(vols: list[int], adfree: bool = True) -> None:
+    """이미 만든(아직 안 올린) Vol을 광고 없는 정보형으로 바꾸거나(adfree) 광고형으로 되돌린 뒤 다시 그립니다."""
+    posts = json.loads(linkpage.POSTS.read_text(encoding="utf-8"))
+    for p in posts:
+        if p["vol"] in vols:
+            p["adfree"] = adfree
+    linkpage.POSTS.write_text(json.dumps(posts, ensure_ascii=False, indent=2), encoding="utf-8")
+    rerender(vols)
+    linkpage.build(posts)
+
+
 def rerender(vols: list[int]) -> None:
     """posts.json에 저장된 상품으로 지난 Vol 카드와 캡션을 다시 만듭니다 (쿠팡 API 호출 없음)."""
     posts = {p["vol"]: p for p in json.loads(linkpage.POSTS.read_text(encoding="utf-8"))}
@@ -70,10 +107,11 @@ def rerender(vols: list[int]) -> None:
             {"productImage": it.get("productImage"), "productUrl": it.get("url"), "productName": it.get("productName")}
             for it in post["items"]
         ]
+        ad = not post.get("adfree")
         out_dir = linkpage.DOCS / "cards" / f"vol-{vol:02d}"
-        render.render_all(topic, products, out_dir)
-        (out_dir / "caption.txt").write_text(caption(topic), encoding="utf-8")
-        print(f"[rerender] Vol.{vol:02d} 다시 만듦")
+        render.render_all(topic, products, out_dir, ad=ad)
+        (out_dir / "caption.txt").write_text(caption(topic, ad=ad), encoding="utf-8")
+        print(f"[rerender] Vol.{vol:02d} 다시 만듦 ({'광고' if ad else '광고 없음'})")
 
 
 def generate(mock: bool = False) -> None:
@@ -91,7 +129,12 @@ def generate(mock: bool = False) -> None:
     topic, state = topics.next_topic()
     print(f'[generate] Vol.{topic["vol"]:02d} {topic["category"]} · {topic["title1"]} {topic["title2"]}')
 
-    if mock:
+    adfree = ad_free_now()
+    if adfree:
+        # 광고 없는 기간: 쿠팡 API를 부르지 않고 정보형 카드만 만듭니다.
+        print(f"[generate] 광고 없는 기간({ad_free_until()}까지): 쿠팡 링크 없이 만듭니다.")
+        products = [None] * len(topic["items"])
+    elif mock:
         products = _mock_products(topic)
     else:
         from .coupang import pick_products
@@ -103,11 +146,11 @@ def generate(mock: bool = False) -> None:
             sys.exit("상품을 3개 이상 찾지 못해 오늘은 건너뜁니다 (state는 저장하지 않음).")
 
     out_dir = linkpage.DOCS / "cards" / f'vol-{topic["vol"]:02d}'
-    files = render.render_all(topic, products, out_dir)
-    (out_dir / "caption.txt").write_text(caption(topic), encoding="utf-8")
+    files = render.render_all(topic, products, out_dir, ad=not adfree)
+    (out_dir / "caption.txt").write_text(caption(topic, ad=not adfree), encoding="utf-8")
 
     date = datetime.now(KST).strftime("%Y-%m-%d")
-    linkpage.add_post(topic, products, date)
+    linkpage.add_post(topic, products, date, adfree=adfree)
     topics.save_state(state)
     print(f"[generate] 카드 {len(files)}장 → {out_dir.relative_to(ROOT)}")
 
@@ -176,6 +219,8 @@ if __name__ == "__main__":
         generate(mock="--mock" in sys.argv)
     elif cmd == "rerender":
         rerender([int(v) for v in sys.argv[2:]])
+    elif cmd in ("adfree", "adon"):
+        set_adfree([int(v) for v in sys.argv[2:]], adfree=cmd == "adfree")
     elif cmd == "publish":
         publish(int(sys.argv[2]) if len(sys.argv) > 2 else None)
     else:
