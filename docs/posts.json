@@ -1,5 +1,48 @@
 [
   {
+    "vol": 7,
+    "date": "2026-11-11",
+    "category": "여행",
+    "title": "해외여행 준비물 5",
+    "items": [
+      {
+        "name": "여권 지갑",
+        "tip": "여권·카드·탑승권을 한 번에 보관",
+        "productName": "에어로그 RFID차단 여행용 여권지갑",
+        "productImage": "https://ads-partners.coupang.com/image1/fC2RtEijXE1cR2khfG_Wotg_aJeP2ZejtfrYzp4ogjm3nLZ0dmsYm9mjtWirTUJztcxM2Ys6paKr3WTnsWnV7dKJWZ141T6SKgFWH_DwBGgL9Tp6KhDM4xcRLq1ny8PgBP_nvxYAqQV2CfDkdzYTXj0stM9xg-28D-I7DjdlrPUyWhGgBZ9XP6ed0yr8jSy3cv70ez0YhZV55UrzNWI5m_KpqmIAa5qZPRXT1jX-BTtF49tVij4mxh1bF2GE0bDbr_jDt5K1CEUdfz3QTKUGr9SeMyFx74gzU7lvOLa8ZhSO6NrgSD0xwfeWpfUud1TWZi0HOfnuwEpouKLt7lDiRNgkgM8_iqpE8GLQ8lva6nyeenKnm4ffW0HIDS6_wiVCSiD_afAhh3O34jx34ATpRN6jZ3kulz6e7OMIoI9sTQ3bUpta60PIItFsnS_xC1vdJ59Ua1StkdkiOmzkV6sXhv3rTUFjJnx8sI3DmnYbwudBw91kOwIsVGGBHUQdZ-AWA_7r-5JzfYfe4s2gUxzSyN0leOR-Pk2IR60RbhI=",
+        "url": "https://link.coupang.com/re/AFFSDP?lptag=AF6581336&subid=insta&pageKey=9346747694&itemId=27723631253&vendorItemId=94707529141&traceid=V0-153-fdfa3f9067d7e66e&clickBeacon=d45a8f00-ddc0-11f1-b7fc-50713ce07191%7E3&requestid=20261111201249058000596927&token=31850C%7CMIXED&pt=1&slot=1"
+      },
+      {
+        "name": "TSA 자물쇠",
+        "tip": "미국 경유 시 검색대 통과용 잠금",
+        "productName": "제로캔들 27리빙 튼튼한 캐리어 스트랩 벨트 터짐 방지",
+        "productImage": "https://ads-partners.coupang.com/image1/OxWRpGop5O-sb8dpO0ifk-elBHjAa0l6mMJ5qNsKZ72hcPzYj3cXJDiik7Klef_9oQjVm572XFMBTBtMisEv_NbC8yORqpKvojgVeADPfNwORMkjtaQgpphO9FVd3m-uBe9n2pFnGr82HIqPfUy_F6YWWNXYGzgl7ctQYR6Ixj-Tm4r1Ix49RBInGuMXVEPZoDBRjTSp9US7E-AewNsozuVixAIKiTG3nf8p3XE06oLzIC92LDuXSVEVTqHHgR-QO67ofLrgqSc-cAehf-TyrWoNV_SuLeCiOnP5IaH17LiIhDNaTXJY-dXHnbyvSJYoCLY7_Sz_HdtWcdTk_BIl2p1NXx90r-Hf1UL7awQJwQQQ-T7YY10-H1zCXJ1wWb0tLBRhjl4eioa-TwWq_hh6Z5CiR_iPciqA6TJdyqAPY0a_TKL-UlaK7VQ9ypysg0B6zypn6I9Mz_Qy5G8EWpc_4xOkpPfZDJ1nJWfeM5gw2WM5y5byBP4eRFGyjgDMyRCKl8ZX25rw_IlPT9jsZgny7YnM1O1JdknUgJUUaiLC",
+        "url": "https://link.coupang.com/re/AFFSDP?lptag=AF6581336&subid=insta&pageKey=6887276721&itemId=16523672334&vendorItemId=90829901099&traceid=V0-153-37201894afb09aaf&clickBeacon=d6b59600-ddc0-11f1-ba21-b15d2d27348a%7E3&requestid=20261111201253055230830546&token=31850C%7CMIXED&pt=1&slot=1"
+      },
+      {
+        "name": "방수 폰 파우치",
+        "tip": "바다·수영장 여행이라면 필수",
+        "productName": "몬스터겔 간편잠금 에어지퍼 IPX8 핸드폰 방수팩, 1개, 베이지",
+        "productImage": "https://ads-partners.coupang.com/image1/9P-Da4szbCKvtN6J9DoLcycxoGBMFj2Jn1A4FCejpbwvf8hgw-ixb-uN2cyxWofXQxgd_yeH8RO-8XD8Vux9Hd-pnuxL3Y7sPgvCuDXRxRM8Bi0_50WItRkAG-b0LTarzH-6SsgdqhMvQNcqettFSKf3wvkFzmh7CuKnKuBDbuyX8t5DGNO6G8Q9Wy2UjINd1_tkczkX_7iVjwEUcoje3S4udS-y9rwawBuHZNsB7zIMRG5dgZVA0sgLh7b8szjiTg-8arkEYmgXJjoDM-RPq4IQsAj-8E7wBcpSq6nvakBgpo9wiFLRZqYugFE9cTT3FC5NG_dTThdjv0_NKsvN6K5ucInYJ5_XufpCOr2dYa-laNsWcq6uqUX4ak-g24abjSAQZizbtGIYqnIrWmuksQc8iE5YX40bwGE5hmQBsEZvDwS69jtirFm47PECu38uwLsVn08BzLwVe5XOOP4EwancSzETxcyQUEnVcoV0DhbRBPLSzTKd2NiwCwhsPuYhaud2R2VCVSj4l_0Z5rrhKZYHttKAbm3DF8wokw==",
+        "url": "https://link.coupang.com/re/AFFSDP?lptag=AF6581336&subid=insta&pageKey=9620948146&itemId=28729698569&vendorItemId=95669856675&traceid=V0-153-2d3a1758b81981ff&clickBeacon=d88bb590-ddc0-11f1-aa64-a7f1830fd7c3%7E3&requestid=20261111201256099301135168&token=31850C%7CMIXED&pt=1&slot=1"
+      },
+      {
+        "name": "여행용 공병",
+        "tip": "기내 반입 용량에 맞춰 소분하기",
+        "productName": "래빗홈 새지않는 여행용 공병 세트 샴푸통 100ml 3P",
+        "productImage": "https://ads-partners.coupang.com/image1/ywlB9ddLh6UhjMvKy6SYmk6FSteM79xpqI1v80Snrcbsp5cbi0jS5fKOQFMbdcnQ7zYf44Oj5gYiTLRtdo5TyaoCYx11xcFzOHq7Eq_D0P-ILGYspS4coxwgMiSDT-Qh6tyqJXlpBTAJth6R0cpm3i1m9Mpj3JU4VbAv1zK5Egk8lZbhaYfIJ7RtJGbhUFU_4DlNV61KH4dd7edFw0sYMW75f-l1lLx6BhuzCNtjqTAxtSsOJ8I-Ih1L_tlpTPkH3KWkt5Xx28DtI3kx0y3142sbgfT_8p7y4nebnolLtShyQi8Iyo66X0YeZ53Ye96dgsQbixqZAIlG4NzE5IWt4Uds8DMo7uL8kjP7E8ipf6piFLv_TTqcBNXK8I8BSHIIU3CmhNqEuZz-K8RCgUrLPswJc-_EmXbaZK_QS9Ke66577IyjaRLs2Zpj0TReRBklNP032wO63R4ka0HXAHwazqzT_TUqO_o8h6KS8bMlPv-zRMlB7OlOQ4jtIqpQA-sOJnPkNqUQ7_lq10ThPPeJV2YsH-rTjC3zCKm0tFVy5iVaeHVKtgdp-w==",
+        "url": "https://link.coupang.com/re/AFFSDP?lptag=AF6581336&subid=insta&pageKey=9693152254&itemId=28991696741&vendorItemId=95920437331&traceid=V0-153-17c977876f5d0c0e&requestid=20261111201300323014367034&token=31850C%7CMIXED&pt=0&slot=4"
+      },
+      {
+        "name": "접이식 보조가방",
+        "tip": "기념품이 늘어날 때 펼쳐 쓰기",
+        "productName": "24H LAB 여행용 접이식 대용량 캐리어 결합 보스턴백",
+        "productImage": "https://ads-partners.coupang.com/image1/CgLLMbwxR96VXukbCpIGkk69k_s1lvMZh5yyIQQDRuC23vc38nZi1dOWvnpZ31cFh341poI0PcQsQtD7Nl64sLozKM5tZ9JB5_zs0OqlGqPMCFqKzcqIoWLK4-jmEfyePGQ9RkEd8727X9VUA_dgtUnE5amR-elO5hPl6rD-DhSVkYmU-su8MbAQX35Qx0nA-jlDAi88RsRHs5Qnv_Wtu4Tvpp26o9_drzWKfVTJXqtNINz7vKh5F5Y3z_hORzyCNT4eI7y0IWnvU23NDAcad4e-DvLe8cjbEWI5cQ8BcV1jaPPhL01wfD_X1QG4k0gIvadqqA8r2Q7ENpcBvAyqBnbn3QUcxu6i7y-JYcD6xiwoo7J7Tg3mFBtUYw5zDiuuagBdraiI1vj_LZqZuwQhEtwDeQkoZa-9Y9WC-7_8NiL9xsKsdA54RtKTGSkGe9H_HxWMWoEXPeQcrKlSmBAs2lZvTVV-GCCrn1UTXK2Qz6BefV2z7_j9GOArbym55gR36hPkuIkR_Ud--ycWs5U6hOdrHrQgqZKUKMD2hQ==",
+        "url": "https://link.coupang.com/re/AFFSDP?lptag=AF6581336&subid=insta&pageKey=9149998047&itemId=26941510459&vendorItemId=94058465316&traceid=V0-153-34c0dfc1611eff0f&clickBeacon=de753a80-ddc0-11f1-87dc-11ca13fe6588%7E3&requestid=20261111201306023144569509&token=31850C%7CMIXED&pt=1&slot=1"
+      }
+    ]
+  },
+  {
     "vol": 6,
     "date": "2026-11-10",
     "category": "캠핑",
