@@ -31,7 +31,8 @@ PUBLISHED = ROOT / "data" / "published.json"
 # 광고 없는 기간: {"until": "2026-11-16"} 이면 그날까지 만드는 카드는 쿠팡 광고·링크 없이 정보만 담습니다.
 ADFREE = ROOT / "data" / "adfree.json"
 KST = timezone(timedelta(hours=9))
-PUBLISH_HOUR_KST = 21
+PUBLISH_HOUR_KST = 12    # 매일 12:40 (한국 시간)에 게시
+PUBLISH_MINUTE_KST = 40
 
 HASHTAGS = {
     "여행": "#여행준비물 #여행꿀팁 #해외여행준비 #여행필수템 #여행가방싸기 #국내여행 #여행템 #여행스타그램",
@@ -189,9 +190,9 @@ def unposted_vols() -> list[int]:
 
 
 def _wait_until_publish_time() -> None:
-    """예약 실행이 일찍 시작되면 오후 9시(한국 시간)까지 기다립니다. 늦게 시작되면 바로 올립니다."""
+    """예약 실행이 일찍 시작되면 낮 12시 40분(한국 시간)까지 기다립니다. 늦게 시작되면 바로 올립니다."""
     now = datetime.now(KST)
-    target = now.replace(hour=PUBLISH_HOUR_KST, minute=0, second=0, microsecond=0)
+    target = now.replace(hour=PUBLISH_HOUR_KST, minute=PUBLISH_MINUTE_KST, second=0, microsecond=0)
     wait = (target - now).total_seconds()
     if 0 < wait <= 3 * 3600:
         print(f"[publish] {target:%H:%M}까지 {int(wait // 60)}분 기다립니다.")

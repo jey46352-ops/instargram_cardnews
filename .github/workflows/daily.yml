@@ -2,7 +2,7 @@ name: daily-cardnews
 
 on:
   schedule:
-    # 매일 17:17 (한국 시간). 실제 시작은 보통 40분쯤 늦습니다. 게시는 publish.yml이 21:00에 합니다.
+    # 매일 17:17 (한국 시간). 실제 시작은 보통 40분쯤 늦습니다. 게시는 publish.yml이 다음 날 12:40에 합니다.
     - cron: "17 8 * * *"
   workflow_dispatch:
 
