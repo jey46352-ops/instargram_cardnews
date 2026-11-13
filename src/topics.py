@@ -30,7 +30,9 @@ def _generate_with_claude(category: str, used_titles: list[str]) -> dict | None:
         f"인스타그램 카드뉴스 주제를 하나 만들어줘. 카테고리: {category}.\n"
         "쿠팡에서 살 수 있는 상품 5개를 추천하는 형식이야. 아래 JSON만 출력해.\n"
         '{"sub":"15자 이내 서브 문구","title1":"7자 이내 제목 첫 줄","title2":"7자 이내 둘째 줄(예: TOP 5)",'
-        '"items":[{"name":"8자 이내 상품명","keyword":"쿠팡 검색 키워드","tip":"24자 이내 한 줄 팁"}]}\n'
+        '"photo":"표지 배경 사진을 찾을 영어 검색어(2~4단어, 분위기 장면)",'
+        '"items":[{"name":"8자 이내 상품명","keyword":"쿠팡 검색 키워드","tip":"24자 이내 한 줄 팁",'
+        '"photo":"이 물건 사진을 찾을 영어 검색어(2~4단어)"}]}\n'
         "items는 정확히 5개. 과장이나 효능 주장은 쓰지 마.\n"
         f"이미 쓴 제목(겹치지 않게): {', '.join(used_titles[-40:])}"
     )

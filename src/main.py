@@ -13,9 +13,17 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import linkpage, render, topics
+from . import linkpage, photos, render, topics
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# 로컬 실행용: .env 파일(KEY=값)이 있으면 환경변수로 읽습니다. GitHub Actions에서는 secrets를 씁니다.
+_ENV = ROOT / ".env"
+if _ENV.exists():
+    for _line in _ENV.read_text(encoding="utf-8-sig").splitlines():
+        _k, _sep, _v = _line.partition("=")
+        if _sep and not _line.lstrip().startswith("#"):
+            os.environ.setdefault(_k.strip(), _v.strip().strip('"').strip("'"))
 # 이미 만든 Vol을 새 디자인으로 다시 그릴 때: [2, 3, 4] 처럼 적어 두면 다음 generate 때 한 번 실행되고 지워집니다.
 RERENDER = ROOT / "data" / "rerender.json"
 # 인스타에 올라간 Vol 번호 목록. publish는 여기 없는 가장 오래된 Vol부터 하루 하나씩 올립니다.
@@ -108,6 +116,7 @@ def rerender(vols: list[int]) -> None:
             for it in post["items"]
         ]
         ad = not post.get("adfree")
+        photos.ensure(topic, items=not ad)
         out_dir = linkpage.DOCS / "cards" / f"vol-{vol:02d}"
         render.render_all(topic, products, out_dir, ad=ad)
         (out_dir / "caption.txt").write_text(caption(topic, ad=ad), encoding="utf-8")
@@ -145,6 +154,8 @@ def generate(mock: bool = False) -> None:
         if found < 3:
             sys.exit("상품을 3개 이상 찾지 못해 오늘은 건너뜁니다 (state는 저장하지 않음).")
 
+    # 표지 배경 사진은 항상, 항목 사진은 상품 사진이 없는 정보형 카드에서만 씁니다.
+    photos.ensure(topic, items=adfree)
     out_dir = linkpage.DOCS / "cards" / f'vol-{topic["vol"]:02d}'
     files = render.render_all(topic, products, out_dir, ad=not adfree)
     (out_dir / "caption.txt").write_text(caption(topic, ad=not adfree), encoding="utf-8")

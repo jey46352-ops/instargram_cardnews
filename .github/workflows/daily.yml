@@ -31,6 +31,7 @@ jobs:
           COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
           COUPANG_SUB_ID: ${{ vars.COUPANG_SUB_ID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           IG_HANDLE: ${{ vars.IG_HANDLE }}
           CARD_ACCENT: ${{ vars.CARD_ACCENT || '#FFD43B' }}
         run: python -m src.main generate
