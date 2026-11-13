@@ -105,8 +105,34 @@ def _bottom(handle: str, right: str, note: str = "") -> str:
     )
 
 
+PHOTOS = Path(__file__).resolve().parent.parent / "data" / "photos"
+
+
+def local_photo(vol: int, key: str) -> str | None:
+    """data/photos/vol-NN/<key>.jpg (무료 CC0 분위기 사진)가 있으면 data URI로 돌려줍니다."""
+    path = PHOTOS / f"vol-{vol:02d}" / f"{key}.jpg"
+    if not path.exists():
+        return None
+    from PIL import Image
+    with Image.open(path) as img:
+        return images.to_data_uri(img.convert("RGB"), max_side=1400)
+
+
 def item_plain(topic: dict, idx: int, it: dict, handle: str) -> str:
-    """광고 없는 정보형 카드: 상품 사진·구매 링크 없이 이름과 팁만 크게."""
+    """광고 없는 정보형 카드: 구매 링크 없이 이름과 팁. 분위기 사진이 있으면 위에 크게 넣습니다."""
+    photo = local_photo(topic["vol"], f"{idx:02d}")
+    if photo:
+        return _page(
+            f'<div class="card">'
+            f'<div class="top"><div><span class="num">{idx:02d}</span><span class="of">/ 05</span></div>'
+            f'<span class="vol">{_e(topic["title1"])}</span></div>'
+            f'<div class="photo fill" style="height:640px"><img src="{photo}" alt=""></div>'
+            f'<div><h2 class="name" style="font-size:96px"><span class="fitline">{_e(it["name"])}</span></h2>'
+            f'<p class="tip" style="font-size:46px">{_e(it["tip"])}</p></div>'
+            f'{_bottom(handle, "다음 팁 " + ARROW)}</div>',
+            topic["category"],
+            light=True,
+        )
     return _page(
         f'<div class="card">'
         f'<div class="top"><div><span class="num">{idx:02d}</span><span class="of">/ 05</span></div>'
@@ -122,8 +148,15 @@ def item_plain(topic: dict, idx: int, it: dict, handle: str) -> str:
 
 
 def cover(topic: dict, handle: str, ad: bool = True) -> str:
+    photo = local_photo(topic["vol"], "cover")
+    # 배경 사진 위에 아래쪽이 진한 그라데이션을 깔아 글자가 잘 읽히게 합니다.
+    bg = (
+        f' style="background: linear-gradient(180deg, rgba(18,18,18,.35) 0%, rgba(18,18,18,.55) 35%, '
+        f'rgba(18,18,18,.92) 62%, #121212 100%), url({photo}) center top / cover no-repeat"'
+        if photo else ""
+    )
     return _page(
-        f'<div class="card">'
+        f'<div class="card"{bg}>'
         f'<div class="top"><span class="tag">{_e(topic["category"])}</span><span class="vol">Vol.{topic["vol"]:02d}</span></div>'
         f'<div style="display:flex;flex-direction:column;gap:32px">'
         f'<p class="sub">{_e(topic["sub"])}</p>'
