@@ -76,19 +76,29 @@ def _download(url: str) -> Image.Image | None:
         return None
 
 
+def _fallback_queries(query: str) -> list[str]:
+    """'packing cubes suitcase' -> ['packing cubes suitcase', 'cubes suitcase', 'suitcase']
+    무료 사진은 구체적인 검색어로는 0건인 경우가 많아, 앞 단어를 하나씩 빼며 다시 찾습니다."""
+    words = query.split()
+    return [" ".join(words[i:]) for i in range(len(words))]
+
+
 def find(query: str, orientation: str, used: set[str]) -> tuple[Image.Image, dict] | None:
-    for search in (_pexels, _openverse):
-        try:
-            candidates = search(query, orientation)
-        except Exception as exc:
-            print(f"[photos] {search.__name__[1:]} 검색 실패 '{query}': {exc}")
-            continue
-        for c in candidates:
-            if c["id"] in used:
+    for q in _fallback_queries(query):
+        for search in (_pexels, _openverse):
+            try:
+                candidates = search(q, orientation)
+            except Exception as exc:
+                print(f"[photos] {search.__name__[1:]} 검색 실패 '{q}': {exc}")
                 continue
-            img = _download(c["url"])
-            if img is not None:
-                return img, c
+            for c in candidates:
+                if c["id"] in used:
+                    continue
+                img = _download(c["url"])
+                if img is not None:
+                    if q != query:
+                        print(f"[photos] '{query}' 대신 '{q}'(으)로 찾음")
+                    return img, c
     return None
 
 

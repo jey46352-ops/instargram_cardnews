@@ -213,7 +213,7 @@
         "url": "https://link.coupang.com/re/AFFSDP?lptag=AF6581336&subid=insta&pageKey=8190322071&itemId=23436926073&vendorItemId=90463817021&traceid=V0-153-65b88e4b54b32cb3&requestid=20261109201141804168093698&token=31850C%7CGM&pt=0&slot=2"
       }
     ],
-    "adfree": true
+    "adfree": false
   },
   {
     "vol": 4,
@@ -257,7 +257,7 @@
         "url": "https://link.coupang.com/re/AFFSDP?lptag=AF6581336&subid=insta&pageKey=9627333103&itemId=28756346966&vendorItemId=95705152384&traceid=V0-153-cbe366ffea0ed872&clickBeacon=f535fcb0-db62-11f1-9fe7-44b2cecb896f%7E3&requestid=20261108195549171131334185&token=31850C%7CMIXED&pt=1&slot=1"
       }
     ],
-    "adfree": true
+    "adfree": false
   },
   {
     "vol": 3,
@@ -301,7 +301,7 @@
         "url": "https://link.coupang.com/re/AFFSDP?lptag=AF6581336&subid=insta&pageKey=7673300603&itemId=28338318873&vendorItemId=95804037037&traceid=V0-153-e572b256252076d0&clickBeacon=be3ac4d0-da99-11f1-a8f6-7623f6c96fa4%7E3&requestid=20261107195528010322000509&token=31850C%7CMIXED&pt=1&slot=1"
       }
     ],
-    "adfree": true
+    "adfree": false
   },
   {
     "vol": 2,
@@ -388,6 +388,7 @@
         "productImage": "https://ads-partners.coupang.com/image1/b9GwrzCvj94CieLIb2Xt8wmgN0Gd6jIoI-D3UJhiVkZ5ezanlPNHoWL1oMdEBv-baZZtBaH6sedz697boJ4cpDuUVVdbok5iLDGJx5Q-vOBF2Mz4W8NnSk7Z1NAhMwDiULZz-k2WpcTaAAohJsjQz3A6IRO9e8S6k0FPqCKZ65BCrYiP59hObrfS8xsnWOWcbtxsP-p5S8JVdXJ6TISMNvne1KRe3TiOELsxhPPsjNkhEyc4atWufhs4-QYicO2kHP1aWmBiVaFFKXhUL9VVXGTVdCUpen7GnLwX3rUf8CcGJlNDuFmF9byaitRJP84zZ6bcL9AhRLavq9PaIhNoB6BLLMaUiiDj6XNbmA55nKgdYzX2IyQ8jPpU5ZIuekN5wraoLAkcN_wOoFa0DQNKprcRfyNI1pqd-rJLaaRdhb_4Iy9bhK6gbpy7S5ZBfS1XUuSxHst-OJL23qvTNnOurCtOq6_o5MP4rZEfWVvtJfoY7a1Z2ny4D3uNNw-6m-mvs-ULPOqw1PrfNDDuplVLqAI5xmK_KWCQ7cWw3A==",
         "url": "https://link.coupang.com/re/AFFSDP?lptag=AF6581336&subid=insta&pageKey=9680623825&itemId=28947636851&vendorItemId=95878342022&traceid=V0-153-9b467d92090378c4&clickBeacon=5a798610-d90a-11f1-af28-25581e15f2a1%7E3&requestid=20261105201631493128606904&token=31850C%7CMIXED&pt=1&slot=2"
       }
-    ]
+    ],
+    "adfree": true
   }
 ]
