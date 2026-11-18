@@ -161,7 +161,8 @@ def cover(topic: dict, handle: str, ad: bool = True) -> str:
         f'<div style="display:flex;flex-direction:column;gap:32px">'
         f'<p class="sub">{_e(topic["sub"])}</p>'
         f'<h1 class="title"><span class="fitline">{_e(topic["title1"])}</span><span class="fitline accent">{_e(topic["title2"])}</span></h1></div>'
-        f'{_bottom(handle, "옆으로 넘기기 " + ARROW, AD_LABEL if ad else "")}</div>',
+        # 광고 표시는 카드 이미지에 넣지 않고 캡션(첫 줄 [광고] + 끝의 쿠팡 고지 문장)으로 합니다.
+        f'{_bottom(handle, "옆으로 넘기기 " + ARROW, "")}</div>',
         topic["category"],
     )
 
@@ -184,7 +185,7 @@ def item(topic: dict, idx: int, it: dict, product: dict | None, handle: str) -> 
 
 def outro(topic: dict, handle: str, ad: bool = True) -> str:
     step2 = "제품 링크는 프로필 링크에서" if ad else "같이 갈 사람에게 공유하기"
-    note = f'<p class="small" style="margin:0 0 16px">{DISCLOSURE}</p>' if ad else ""
+    note = ""  # 쿠팡 고지 문장은 캡션 끝에만 넣습니다.
     return _page(
         f'<div class="card">'
         f'<div class="top"><span class="tag">{_e(topic["category"])}</span><span class="vol">Vol.{topic["vol"]:02d}</span></div>'

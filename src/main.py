@@ -35,9 +35,9 @@ PUBLISH_HOUR_KST = 12    # 매일 12:40 (한국 시간)에 게시
 PUBLISH_MINUTE_KST = 40
 
 HASHTAGS = {
-    "여행": "#여행준비물 #여행꿀팁 #해외여행준비 #여행필수템 #여행가방싸기 #국내여행 #여행템 #여행스타그램",
-    "숙소": "#호캉스 #숙소추천 #호텔꿀팁 #여행준비물 #숙소필수템 #에어비앤비 #여행꿀템 #호캉스준비물",
-    "캠핑": "#캠핑용품 #캠핑필수템 #캠핑초보 #캠핑꿀템 #차박 #캠핑장비 #캠핑스타그램 #감성캠핑",
+    "여행": "#여행준비물 #여행꿀팁 #해외여행준비 #여행필수템 #여행가방싸기 #짐싸기 #여행체크리스트 #국내여행 #여행템 #여행스타그램",
+    "숙소": "#호캉스 #숙소추천 #호텔꿀팁 #여행준비물 #숙소필수템 #에어비앤비 #여행꿀템 #호캉스준비물 #여행체크리스트 #여행스타그램",
+    "캠핑": "#캠핑용품 #캠핑필수템 #캠핑초보 #캠핑꿀템 #차박 #캠핑장비 #캠핑스타그램 #감성캠핑 #캠핑준비물 #캠핑체크리스트",
 }
 
 
@@ -52,31 +52,53 @@ def ad_free_now() -> bool:
     return datetime.now(KST).strftime("%Y-%m-%d") <= ad_free_until()
 
 
+# 캡션 틀(팔로워 늘리기): 첫 두 줄 훅+저장 유도 → 항목 → 댓글 질문 → 팔로우 이유 → 다음 Vol 예고 → 친구 태그 → 해시태그
+EMOJI = {"여행": "✈️", "숙소": "🏨", "캠핑": "⛺"}
+SAVE_WHEN = {"여행": "짐 쌀 때", "숙소": "숙소 가기 전에", "캠핑": "캠핑 짐 쌀 때"}
+
+
+def _next_post_line(vol: int) -> str:
+    """posts.json에 다음 Vol이 이미 있으면 예고 한 줄을 만듭니다 (없으면 빈 문자열)."""
+    try:
+        posts = json.loads(linkpage.POSTS.read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    nxt = next((p for p in posts if p["vol"] == vol + 1), None)
+    if not nxt:
+        return ""
+    bank = json.loads(topics.BANK.read_text(encoding="utf-8"))
+    t = next((t for t in bank if t["category"] == nxt["category"]
+              and f'{t["title1"]} {t["title2"]}' == nxt["title"]), None)
+    title = f'{t["sub"]} {nxt["title"]}' if t else nxt["title"]
+    return f'다음 Vol.{vol + 1:02d} — {title} {EMOJI.get(nxt["category"], "")}'.rstrip()
+
+
 def caption(topic: dict, ad: bool = True) -> str:
-    if not ad:
-        lines = [f'{topic["sub"]} {topic["title1"]} {topic["title2"]}', ""]
-        lines += [f'{n}. {it["name"]} — {it["tip"]}' for n, it in enumerate(topic["items"], start=1)]
-        lines += [
-            "",
-            "도움이 됐다면 저장하고, 같이 갈 사람에게 공유해 주세요.",
-            f'매일 새 {topic["category"]} 꿀팁을 올려요. 팔로우하고 받아보세요.',
-            "",
-            HASHTAGS.get(topic["category"], ""),
-        ]
-        return "\n".join(lines)[:2200]
-    # 광고 표시는 '더보기' 없이 보이는 첫 줄에 둡니다 (공정위 추천·보증 심사지침).
-    lines = ["[광고] 쿠팡 파트너스 수수료를 받는 추천 게시물이에요", "", f'{topic["sub"]} {topic["title1"]} {topic["title2"]}', ""]
-    for n, it in enumerate(topic["items"], start=1):
-        lines.append(f'{n}. {it["name"]} — {it["tip"]}')
+    cat = topic["category"]
+    handle = os.environ.get("IG_HANDLE") or render.DEFAULT_HANDLE
+    title = f'{topic["sub"]} {topic["title1"]} {topic["title2"]} {EMOJI.get(cat, "")}'.rstrip()
+    # 2026-11-18 사용자 결정: 캡션의 [광고] 첫 줄과 쿠팡 고지 문장을 넣지 않습니다 (카드 이미지에도 없음).
+    lines = [
+        title,
+        f'저장해 두고 {SAVE_WHEN.get(cat, "필요할 때")} 꺼내 보세요 📌',
+        "",
+    ]
+    lines += [f'{n}. {it["name"]} — {it["tip"]}' for n, it in enumerate(topic["items"], start=1)]
     lines += [
         "",
-        f'제품 링크는 프로필 링크 → Vol.{topic["vol"]:02d}에 번호 순서대로 있어요.',
-        "도움이 됐다면 저장하고, 같이 갈 사람에게 공유해 주세요.",
+        "💬 여러분이 매번 챙기는 물건은 뭐예요? 댓글로 알려주시면 다음 Vol에 담을게요.",
         "",
-        render.DISCLOSURE,
-        "",
-        HASHTAGS.get(topic["category"], ""),
+        f"👉 {handle} 팔로우하면",
+        "매일 여행·숙소·캠핑 꿀팁 카드가 피드에 올라와요.",
+        "프로필에서 지난 Vol도 한 번에 모아 볼 수 있어요.",
     ]
+    if ad:
+        lines.append(f'제품 링크는 프로필 링크 → Vol.{topic["vol"]:02d}에 번호 순서대로 있어요.')
+    nxt = _next_post_line(topic["vol"])
+    if nxt:
+        lines += ["", nxt]
+    lines += ["", "같이 갈 친구 태그해서 공유해 주세요 🙌", ""]
+    lines.append(HASHTAGS.get(cat, ""))
     return "\n".join(lines)[:2200]
 
 
