@@ -106,21 +106,41 @@ def paste_caption(page: Page, text: str) -> None:
         page.wait_for_timeout(1000)
 
 
+def open_post_dialog(page: Page) -> None:
+    """'새로운 게시물' 창을 열고, 여러 장을 받는 파일 입력칸이 생길 때까지 기다립니다."""
+    multi = page.locator('input[type="file"][multiple]')
+    for attempt in range(3):
+        if attempt:
+            log(f"게시물 창이 안 열려서 다시 시도합니다 ({attempt + 1}/3)")
+            page.keyboard.press("Escape")
+            page.goto("https://www.instagram.com/", wait_until="domcontentloaded")
+            page.wait_for_timeout(3000)
+        for _ in range(3):
+            click_if_visible(page, rx("나중에 하기", "Not now", "Not Now"), 800)
+        page.locator('svg[aria-label="새로운 게시물"], svg[aria-label="New post"]').first.click()
+        page.wait_for_timeout(1500)
+        if multi.count() == 0:
+            # 메뉴(게시물 / AI)가 뜨는 경우 '게시물' 선택.
+            # 페이지 이동 링크(프로필의 '게시물' 탭 등)는 누르지 않도록 실제 주소가 있는 a 는 제외합니다.
+            sub = page.locator('a[href="#"], a:not([href]), div[role="button"], div[role="menuitem"], span') \
+                .filter(has_text=rx("게시물", "Post")).first
+            try:
+                if sub.is_visible(timeout=1500):
+                    sub.click()
+                    page.wait_for_timeout(1500)
+            except Exception:
+                pass
+        try:
+            multi.first.wait_for(state="attached", timeout=10000)
+            return
+        except Exception:
+            continue
+    raise RuntimeError("게시물 만들기 창(여러 장 업로드 칸)을 찾지 못했습니다.")
+
+
 def post(page: Page, files: list[Path], cap: str) -> None:
-    for _ in range(3):
-        click_if_visible(page, rx("나중에 하기", "Not now", "Not Now"), 800)
-    page.locator('svg[aria-label="새로운 게시물"], svg[aria-label="New post"]').first.click()
-    page.wait_for_timeout(1500)
-    # 메뉴(게시물 / AI)가 뜨는 경우 '게시물' 선택
-    sub = page.locator('a, div[role="button"], span').filter(has_text=rx("게시물", "Post")).first
-    try:
-        if sub.is_visible(timeout=1500):
-            sub.click()
-            page.wait_for_timeout(1500)
-    except Exception:
-        pass
-    page.locator('div[role="dialog"] input[type="file"], input[type="file"]').first.set_input_files(
-        [str(f) for f in files])
+    open_post_dialog(page)
+    page.locator('input[type="file"][multiple]').first.set_input_files([str(f) for f in files])
     log(f"이미지 {len(files)}장 선택")
     crop = page.locator('svg[aria-label="자르기 선택"], svg[aria-label="Select crop"]').first
     crop.wait_for(state="visible", timeout=60000)
