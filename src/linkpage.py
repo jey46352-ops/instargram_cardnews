@@ -45,8 +45,8 @@ def add_post(topic: dict, products: list[dict | None], date: str, adfree: bool =
 
 def build(posts: list[dict]) -> None:
     handle = os.environ.get("IG_HANDLE") or DEFAULT_HANDLE
-    # 광고 없는 정보형 Vol은 링크가 없으므로 프로필 링크 페이지에 싣지 않습니다.
-    posts = [p for p in posts if not p.get("adfree")]
+    # 쿠팡 링크가 하나라도 있는 Vol은 모두 싣습니다 (2026-11-23: 광고 없이 올렸던 Vol.01~02 상품도 링크로 연결).
+    posts = [p for p in posts if any(it.get("url") for it in p.get("items", []))]
     sections = []
     for p in posts:
         rows = []
