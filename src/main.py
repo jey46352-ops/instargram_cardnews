@@ -77,9 +77,11 @@ def caption(topic: dict, ad: bool = True) -> str:
     cat = topic["category"]
     handle = os.environ.get("IG_HANDLE") or render.DEFAULT_HANDLE
     title = f'{topic["sub"]} {topic["title1"]} {topic["title2"]} {EMOJI.get(cat, "")}'.rstrip()
-    # 2026-11-18 사용자 결정: 캡션의 [광고] 첫 줄과 쿠팡 고지 문장을 넣지 않습니다 (카드 이미지에도 없음).
-    lines = [
-        title,
+    # 2026-11-23 사용자 결정: 광고 Vol은 제목 바로 아래(미리보기에 보이는 자리)에 쿠팡 파트너스 고지 문장을 넣습니다.
+    lines = [title]
+    if ad:
+        lines.append(render.DISCLOSURE)
+    lines += [
         f'저장해 두고 {SAVE_WHEN.get(cat, "필요할 때")} 꺼내 보세요 📌',
         "",
     ]
