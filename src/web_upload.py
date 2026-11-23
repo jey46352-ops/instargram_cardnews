@@ -163,8 +163,11 @@ def post(page: Page, files: list[Path], cap: str) -> None:
 def record_published(vol: int) -> None:
     pub = sorted(set(cn._published()) | {vol})
     cn.PUBLISHED.write_text(json.dumps(pub), encoding="utf-8")
-    git("add", "data/published.json")
-    r = git("commit", "-m", f"Vol.{vol:02d} 인스타 게시 기록 (PC 업로드)", "--", "data/published.json")
+    # 게시한 Vol까지 상품 링크가 보이도록 링크 페이지를 다시 만듭니다 (push되면 pages.yml이 배포).
+    cn.linkpage.build(json.loads(cn.linkpage.POSTS.read_text(encoding="utf-8")))
+    files = ["data/published.json", "docs/index.html"]
+    git("add", *files)
+    r = git("commit", "-m", f"Vol.{vol:02d} 인스타 게시 기록 + 링크 페이지 갱신 (PC 업로드)", "--", *files)
     if r.returncode == 0:
         p1 = git("pull", "--rebase", "--autostash", "origin", "main")
         p2 = git("push", "origin", "main")

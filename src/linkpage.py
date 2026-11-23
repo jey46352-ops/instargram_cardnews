@@ -9,6 +9,7 @@ from .render import DEFAULT_HANDLE, DISCLOSURE, accent_for
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
 POSTS = DOCS / "posts.json"
+PUBLISHED = ROOT / "data" / "published.json"
 
 
 def _e(s) -> str:
@@ -45,8 +46,13 @@ def add_post(topic: dict, products: list[dict | None], date: str, adfree: bool =
 
 def build(posts: list[dict]) -> None:
     handle = os.environ.get("IG_HANDLE") or DEFAULT_HANDLE
-    # 쿠팡 링크가 하나라도 있는 Vol은 모두 싣습니다 (2026-11-23: 광고 없이 올렸던 Vol.01~02 상품도 링크로 연결).
-    posts = [p for p in posts if any(it.get("url") for it in p.get("items", []))]
+    # 2026-11-23 사용자 결정: 인스타에 실제로 올린 Vol(data/published.json)만 싣습니다.
+    # 아직 안 올린 Vol의 링크는 게시할 때 web_upload가 페이지를 다시 만들어 함께 올립니다.
+    try:
+        published = set(json.loads(PUBLISHED.read_text(encoding="utf-8")))
+    except Exception:
+        published = set()
+    posts = [p for p in posts if p["vol"] in published and any(it.get("url") for it in p.get("items", []))]
     sections = []
     for p in posts:
         rows = []
